@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPI Matematika - Bilangan Bulat | SMP Negeri 5 Lamongan</title>
+  <style>
+    /* ==========================================================================
+       1. STYLESHEET DASAR & SYSTEM RESET
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f9ff url('bg.jfif') center/cover no-repeat fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Lapisan Overlay Semitransparan */
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(240, 249, 255, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 1;
+    }
+
+    /* ==========================================================================
+       2. WADAH UTAMA PANGGUNG 16:9 (PAS LAYAR - ZERO SCROLL)
+       ========================================================================== */
+    #stage-16-9 {
+      position: relative;
+      z-index: 10;
+      width: min(100vw, 177.78vh);
+      height: min(56.25vw, 100vh);
+      aspect-ratio: 16 / 9;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(10px, 1.8vh, 18px);
+      font-size: calc(15px * var(--font-scale, 1.0));
+      color: #1e293b;
+    }
+
+    /* Navigation Bar Atas */
+    header.app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: clamp(52px, 8vh, 70px);
+      margin-bottom: clamp(6px, 1.2vh, 12px);
+      padding: 0 clamp(8px, 1.5vw, 16px);
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      flex-shrink: 0;
+    }
+
+    .brand-capsule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: clamp(42px, 6.2vh, 58px);
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    .brand-text h1 {
+      font-size: clamp(14px, 2vh, 18px);
+      font-weight: 800;
+      color: #0284c7;
+      line-height: 1.1;
+    }
+
+    .brand-text p {
+      font-size: clamp(10px, 1.3vh, 12px);
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: clamp(10px, 1.3vh, 12px);
+      font-weight: 700;
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      width: clamp(38px, 4.8vh, 44px);
+      height: clamp(38px, 4.8vh, 44px);
+      border-radius: 50%;
+      border: none;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: clamp(16px, 2.1vh, 20px);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .ctrl-btn:hover {
+      background: #0284c7;
+      color: #ffffff;
+      transform: scale(1.08);
+    }
+
+    .nav-btn-home {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: clamp(38px, 4.8vh, 44px);
+      border-radius: 22px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      font-weight: 700;
+      font-size: clamp(12px, 1.6vh, 14px);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      transition: all 0.2s;
+    }
+
+    .nav-btn-home:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+    }
+
+    /* Container Modul Utama (SPA Pages) */
+    main.content-area {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: calc(100% - clamp(58px, 9vh, 80px));
+      overflow: hidden;
+    }
+
+    .page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.35s ease-in-out forwards;
+    }
+
+    .page.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Header Halaman / Title Bar */
+    .page-title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: clamp(8px, 1.5vh, 14px);
+      padding: 8px 18px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      flex-shrink: 0;
+    }
+
+    .page-title {
+      font-size: clamp(16px, 2.2vh, 22px);
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ==========================================================================
+       3. HALAMAN 1: SAMPUL / BERANDA (COVER)
+       ========================================================================== */
+    #page-cover {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .cover-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: clamp(20px, 4vh, 36px) clamp(24px, 5vw, 48px);
+      box-shadow: 0 16px 40px rgba(2, 132, 199, 0.12);
+      border: 2px solid #ffffff;
+      max-width: 900px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(12px, 2vh, 20px);
+    }
+
+    .cover-title {
+      font-size: clamp(2.6rem, 5.8vw, 4.2rem);
+      font-weight: 900;
+      color: #0284c7;
+      text-shadow: 3px 3px 0px #ffffff, 6px 6px 0px rgba(2, 132, 199, 0.2);
+      letter-spacing: -1px;
+      line-height: 1.05;
+    }
+
+    .cover-subtitle {
+      font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      font-weight: 800;
+      color: #334155;
+      background: #e0f2fe;
+      padding: 6px 20px;
+      border-radius: 30px;
+    }
+
+    .cover-desc {
+      font-size: clamp(13px, 1.65vh, 16px);
+      font-weight: 600;
+      color: #475569;
+      max-width: 680px;
+      line-height: 1.45;
+    }
+
+    .btn-start-pulsing {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 clamp(28px, 4vw, 44px);
+      height: clamp(60px, 8.5vh, 76px);
+      border-radius: 40px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #0d9488);
+      color: white;
+      font-size: clamp(20px, 3vh, 26px);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4);
+      animation: pulseGlow 2s infinite;
+      transition: all 0.2s;
+    }
+
+    .btn-start-pulsing:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 32px rgba(2, 132, 199, 0.6);
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.6); }
+      70% { box-shadow: 0 0 0 20px rgba(2, 132, 199, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+    }
+
+    .cover-footer {
+      margin-top: 10px;
+      font-size: clamp(11px, 1.4vh, 13px);
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       4. HALAMAN 2: DASHBOARD MENU UTAMA
+       ========================================================================== */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: clamp(10px, 1.8vh, 18px);
+      height: 100%;
+      width: 100%;
+    }
+
+    .menu-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: clamp(12px, 2vh, 18px);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+      transition: all 0.25s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      border-color: #0284c7;
+      background: #ffffff;
+      box-shadow: 0 12px 28px rgba(2, 132, 199, 0.15);
+    }
+
+    .icon-box {
+      width: clamp(66px, 9vh, 84px);
+      height: clamp(66px, 9vh, 84px);
+      border-radius: 20px;
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(34px, 4.8vh, 44px);
+      flex-shrink: 0;
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.8);
+    }
+
+    .menu-info h3 {
+      font-size: clamp(15px, 2vh, 19px);
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .menu-info p {
+      font-size: clamp(11.5px, 1.5vh, 13.5px);
+      font-weight: 600;
+      color: #64748b;
+      line-height: 1.35;
+    }
+
+    /* ==========================================================================
+       5. HALAMAN 3: TUJUAN PEMBELAJARAN
+       ========================================================================== */
+    .tp-card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      padding: clamp(20px, 3.5vh, 32px);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .tp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(10px, 2vh, 16px);
+    }
+
+    .tp-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #f8fafc;
+      padding: clamp(12px, 2vh, 18px);
+      border-radius: 16px;
+      border-left: 6px solid #0284c7;
+      font-size: clamp(13.5px, 1.8vh, 16px);
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .tp-icon {
+      font-size: clamp(24px, 3.5vh, 32px);
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       6. HALAMAN 4: MATERI INTI (GRID KONSEP)
+       ========================================================================== */
+    .materi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: clamp(10px, 1.8vh, 16px);
+      height: 100%;
+    }
+
+    .materi-card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 18px;
+      padding: clamp(12px, 2vh, 18px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-top: 4px solid #0284c7;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+
+    .materi-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .materi-icon {
+      font-size: clamp(22px, 3vh, 28px);
+    }
+
+    .materi-card h4 {
+      font-size: clamp(14px, 1.9vh, 17px);
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .materi-card p {
+      font-size: clamp(12px, 1.55vh, 14px);
+      font-weight: 600;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       7. HALAMAN 5: SIMULASI INTERAKTIF (GARIS BILANGAN)
+       ========================================================================== */
+    .sim-container {
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 20px;
+      padding: clamp(12px, 2vh, 18px);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sim-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      background: #e0f2fe;
+      padding: 10px 20px;
+      border-radius: 16px;
+      flex-shrink: 0;
+    }
+
+    .sim-btn {
+      padding: 8px 18px;
+      border-radius: 12px;
+      border: none;
+      background: #0284c7;
+      color: white;
+      font-weight: 700;
+      font-size: clamp(12px, 1.6vh, 14px);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sim-btn:hover {
+      background: #0369a1;
+      transform: scale(1.05);
+    }
+
+    .sim-val-display {
+      font-size: clamp(16px, 2.2vh, 20px);
+      font-weight: 800;
+      color: #0369a1;
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .svg-canvas-box {
+      flex: 1;
+      width: 100%;
+      height: clamp(240px, 36vh, 380px);
+      background: #ffffff;
+      border-radius: 16px;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       8. HALAMAN 6: EVALUASI MULTI-FORMAT (3 BABAK)
+       ========================================================================== */
+    .eval-container {
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 20px;
+      padding: clamp(14px, 2vh, 20px);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .eval-tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .eval-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      background: #f1f5f9;
+      border-radius: 10px;
+      font-size: clamp(11px, 1.5vh, 13px);
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    .eval-tab.active {
+      background: #0284c7;
+      color: white;
+    }
+
+    .eval-body {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .eval-stage {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .eval-stage.active {
+      display: flex;
+    }
+
+    .soal-text {
+      font-size: clamp(14px, 2vh, 18px);
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+
+    .pg-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pg-btn {
+      padding: clamp(10px, 1.8vh, 14px);
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      text-align: left;
+      font-size: clamp(13px, 1.7vh, 15px);
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pg-btn:hover {
+      border-color: #0284c7;
+      background: #f0f9ff;
+    }
+
+    /* Babak Menjodohkan Garis SVG */
+    .match-grid {
+      display: flex;
+      justify-content: space-between;
+      height: clamp(220px, 32vh, 320px);
+      position: relative;
+    }
+
+    .match-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 42%;
+      z-index: 2;
+    }
+
+    .match-item {
+      padding: 10px 14px;
+      background: white;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: clamp(12px, 1.6vh, 14px);
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .match-item.selected {
+      border-color: #0284c7;
+      background: #e0f2fe;
+    }
+
+    .match-svg-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Babak Benar / Salah */
+    .tf-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tf-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .tf-statement {
+      font-size: clamp(12.5px, 1.65vh, 14.5px);
+      font-weight: 600;
+      color: #334155;
+      width: 70%;
+    }
+
+    .tf-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tf-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 800;
+      font-size: clamp(11px, 1.5vh, 13px);
+      cursor: pointer;
+    }
+
+    .tf-true { background: #dcfce7; color: #15803d; }
+    .tf-false { background: #fee2e2; color: #b91c1c; }
+
+    /* Hasil Skor Evaluasi */
+    .score-board {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 10px;
+    }
+
+    .trophy-icon {
+      font-size: clamp(48px, 7vh, 64px);
+    }
+
+    .score-num {
+      font-size: clamp(36px, 6vh, 52px);
+      font-weight: 900;
+      color: #0284c7;
+    }
+
+    /* ==========================================================================
+       9. HALAMAN 7: PROFIL GURU PENGEMBANG
+       ========================================================================== */
+    .profile-card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      padding: clamp(20px, 3.5vh, 32px);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: clamp(24px, 4vw, 48px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .profile-img-frame {
+      width: clamp(130px, 18vh, 175px);
+      height: clamp(130px, 18vh, 175px);
+      border-radius: 50%;
+      border: 5px solid #0284c7;
+      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #e0f2fe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .profile-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-info h3 {
+      font-size: clamp(20px, 3vh, 26px);
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .profile-info .school {
+      font-size: clamp(14px, 2vh, 17px);
+      font-weight: 700;
+      color: #0284c7;
+      margin-bottom: 12px;
+    }
+
+    .profile-info .quote {
+      font-size: clamp(12.5px, 1.65vh, 15px);
+      font-style: italic;
+      color: #475569;
+      background: #f8fafc;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border-left: 4px solid #0284c7;
+    }
+
+    /* Modal Pop-up Wawasan Fakta */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 20px;
+      padding: clamp(20px, 3vh, 30px);
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Lapisan Overlay Latar Belakang -->
+  <div class="bg-overlay"></div>
+
+  <!-- Wadah Utama Panggung 16:9 Pas Layar Bebas Scroll -->
+  <div id="stage-16-9">
+    
+    <!-- Navigation Bar Atas -->
+    <header class="app-header">
+      <div class="brand-capsule">
+        <img src="logo.jfif" alt="Logo Sekolah" class="logo-img" onerror="this.style.display='none'">
+        <div class="brand-text">
+          <h1>SMP Negeri 5 Lamongan</h1>
+          <p>Media Pembelajaran Interaktif Matematika</p>
+        </div>
+      </div>
+      <div class="badge-group">
+        <span class="badge">Kurikulum Merdeka</span>
+        <span class="badge">Fase D / Kelas VII</span>
+      </div>
+      <div class="header-controls">
+        <button class="ctrl-btn" onclick="toggleAudio()" title="Suara ON/OFF">🔊</button>
+        <button class="nav-btn-home" onclick="navigateTo('page-dashboard')">🏠 MENU</button>
+      </div>
+    </header>
+
+    <!-- Area Konten Utama Single Page Application (SPA) -->
+    <main class="content-area">
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 1: SAMPUL / BERANDA -->
+      <!-- =================================================================== -->
+      <section id="page-cover" class="page active">
+        <div class="cover-card">
+          <span class="cover-subtitle">BILANGAN BULAT</span>
+          <h2 class="cover-title">MATEMATIKA FASE D</h2>
+          <p class="cover-desc">
+            Eksplorasi interaktif konsep dasar bilangan bulat, pembacaan, penulisan, dan penentuan posisinya secara visual pada garis bilangan.
+          </p>
+          <button class="btn-start-pulsing" onclick="playClickSound(); navigateTo('page-dashboard')">
+            <span>▶ MULAI</span>
+          </button>
+          <div class="cover-footer">
+            Pengembang: <strong>Luluk Ianatul Afifah, S.Pd</strong> — SMP Negeri 5 Lamongan
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 2: DASHBOARD MENU UTAMA -->
+      <!-- =================================================================== -->
+      <section id="page-dashboard" class="page">
+        <div class="menu-grid">
+          <div class="menu-card" onclick="playClickSound(); navigateTo('page-tp')">
+            <div class="icon-box">🎯</div>
+            <div class="menu-info">
+              <h3>Tujuan Belajar</h3>
+              <p>Capaian dan indikator kompetensi siswa</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="playClickSound(); navigateTo('page-materi')">
+            <div class="icon-box">📖</div>
+            <div class="menu-info">
+              <h3>Materi Inti</h3>
+              <p>Konsep pokok dan sifat bilangan bulat</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="playClickSound(); navigateTo('page-simulasi')">
+            <div class="icon-box">🕹️</div>
+            <div class="menu-info">
+              <h3>Simulasi Garis Bilangan</h3>
+              <p>Laboratorium virtual eksplorasi posisi</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="playClickSound(); navigateTo('page-evaluasi')">
+            <div class="icon-box">📝</div>
+            <div class="menu-info">
+              <h3>Evaluasi Interaktif</h3>
+              <p>Uji pemahaman 3 babak (Skor 100)</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="playClickSound(); navigateTo('page-profil')">
+            <div class="icon-box">👨‍🏫</div>
+            <div class="menu-info">
+              <h3>Profil Guru</h3>
+              <p>Informasi fasilitator pengembang</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="playClickSound(); openWawasanModal()">
+            <div class="icon-box">💡</div>
+            <div class="menu-info">
+              <h3>Wawasan & Fakta</h3>
+              <p>Fakta menarik bilangan bulat di alam</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 3: TUJUAN PEMBELAJARAN -->
+      <!-- =================================================================== -->
+      <section id="page-tp" class="page">
+        <div class="page-title-bar">
+          <div class="page-title">🎯 TUJUAN PEMBELAJARAN (TP)</div>
+        </div>
+        <div class="tp-card">
+          <ul class="tp-list">
+            <li class="tp-item">
+              <span class="tp-icon">📌</span>
+              <span>Peserta didik mampu memahami konsep bilangan bulat positif, nol, dan bilangan bulat negatif secara utuh.</span>
+            </li>
+            <li class="tp-item">
+              <span class="tp-icon">📌</span>
+              <span>Peserta didik mampu membaca dan menuliskan lambang bilangan bulat dengan benar dalam berbagai konteks.</span>
+            </li>
+            <li class="tp-item">
+              <span class="tp-icon">📌</span>
+              <span>Peserta didik mampu menentukan dan membandingkan posisi bilangan bulat pada garis bilangan horizontal secara akurat.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 4: MATERI INTI PEMBELAJARAN -->
+      <!-- =================================================================== -->
+      <section id="page-materi" class="page">
+        <div class="page-title-bar">
+          <div class="page-title">📖 MATERI INTI: KONSEP BILANGAN BULAT</div>
+        </div>
+        <div class="materi-grid">
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">➕</span>
+              <h4>Bilangan Positif</h4>
+            </div>
+            <p>Bilangan bernilai lebih dari nol (1, 2, 3, ...). Terletak di sebelah kanan angka nol pada garis bilangan.</p>
+          </div>
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">⭕</span>
+              <h4>Netral (Nol)</h4>
+            </div>
+            <p>Angka 0 bertindak sebagai titik acuan (pembatas). Nol tidak bernilai positif maupun negatif.</p>
+          </div>
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">➖</span>
+              <h4>Bilangan Negatif</h4>
+            </div>
+            <p>Bilangan bernilai kurang dari nol (-1, -2, -3, ...). Terletak di sebelah kiri angka nol pada garis bilangan.</p>
+          </div>
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">↔️</span>
+              <h4>Urutan & Posisi</h4>
+            </div>
+            <p>Semakin ke kanan posisi suatu bilangan pada garis bilangan, maka nilainya akan semakin besar.</p>
+          </div>
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">🌡️</span>
+              <h4>Aplikasi Suhu</h4>
+            </div>
+            <p>Suhu di atas 0°C bernilai positif (+), sedangkan suhu di bawah titik beku 0°C ditulis dengan tanda negatif (-).</p>
+          </div>
+          <div class="materi-card">
+            <div class="materi-header">
+              <span class="materi-icon">🌊</span>
+              <h4>Kedalaman Laut</h4>
+            </div>
+            <p>Permukaan laut dianggap sebagai titik 0. Ketinggian di atas laut bernilai positif, kedalaman bernilai negatif.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 5: SIMULASI / LAB VIRTUAL SVG GARIS BILANGAN -->
+      <!-- =================================================================== -->
+      <section id="page-simulasi" class="page">
+        <div class="page-title-bar">
+          <div class="page-title">🕹️ SIMULASI INTERAKTIF GARIS BILANGAN</div>
+        </div>
+        <div class="sim-container">
+          <div class="sim-controls">
+            <button class="sim-btn" onclick="updateSimValue(-1)">⬅️ Geser Kiri (-1)</button>
+            <div class="sim-val-display" id="sim-val-text">Posisi: 0</div>
+            <button class="sim-btn" onclick="updateSimValue(1)">Geser Kanan (+1) ➡️</button>
+            <button class="sim-btn" style="background:#64748b;" onclick="resetSim()">Reset (0)</button>
+          </div>
+          <div class="svg-canvas-box">
+            <svg id="sim-svg" width="100%" height="100%" viewBox="0 0 800 300">
+              <!-- Garis Utama -->
+              <line x1="50" y1="180" x2="750" y2="180" stroke="#0284c7" stroke-width="6" stroke-linecap="round"/>
+              <path d="M 45 180 L 60 170 L 60 190 Z" fill="#0284c7"/>
+              <path d="M 755 180 L 740 170 L 740 190 Z" fill="#0284c7"/>
+
+              <!-- Skala Garis Bilangan (-5 sampai 5) -->
+              <g id="svg-ticks"></g>
+
+              <!-- Titik Posisi / Pin Bergerak -->
+              <g id="svg-pointer" transform="translate(400, 180)">
+                <circle r="16" fill="#0369a1" stroke="#ffffff" stroke-width="4"/>
+                <path d="M 0 -16 L -10 -35 L 10 -35 Z" fill="#0369a1"/>
+                <rect x="-35" y="-65" width="70" height="26" rx="6" fill="#ffffff" stroke="#0369a1" stroke-width="2"/>
+                <text x="0" y="-48" text-anchor="middle" font-size="14" font-weight="800" fill="#0369a1" id="svg-pointer-text">0</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 6: EVALUASI MULTI-FORMAT (SKOR 100) -->
+      <!-- =================================================================== -->
+      <section id="page-evaluasi" class="page">
+        <div class="page-title-bar">
+          <div class="page-title">📝 EVALUASI FORMATIF (TOTAL SKOR: 100)</div>
+        </div>
+        <div class="eval-container">
+          <div class="eval-tab-bar">
+            <div class="eval-tab active" id="tab-1">Babak A: Pilihan Ganda (30pt)</div>
+            <div class="eval-tab" id="tab-2">Babak B: Menjodohkan (40pt)</div>
+            <div class="eval-tab" id="tab-3">Babak C: Benar/Salah (30pt)</div>
+            <div class="eval-tab" id="tab-4">Hasil Skor</div>
+          </div>
+
+          <div class="eval-body">
+            <!-- BABAK A: PILIHAN GANDA -->
+            <div class="eval-stage active" id="stage-pg">
+              <div>
+                <div class="soal-text" id="pg-question">Soal Pilihan Ganda</div>
+                <div class="pg-options" id="pg-options-box"></div>
+              </div>
+              <div style="font-size:12px; color:#64748b; text-align:right;" id="pg-progress">Soal 1 dari 3</div>
+            </div>
+
+            <!-- BABAK B: MENJODOHKAN GARIS SVG -->
+            <div class="eval-stage" id="stage-match">
+              <div class="soal-text">Klik istilah di kiri, lalu klik pasangannya di kanan:</div>
+              <div class="match-grid">
+                <svg class="match-svg-layer" id="match-svg"></svg>
+                <div class="match-col" id="match-left"></div>
+                <div class="match-col" id="match-right"></div>
+              </div>
+              <button class="sim-btn" style="margin-top:10px; align-self:flex-end;" onclick="submitMatch()">Kirim Jawaban Menjodohkan ➡️</button>
+            </div>
+
+            <!-- BABAK C: BENAR / SALAH -->
+            <div class="eval-stage" id="stage-tf">
+              <div class="soal-text">Tentukan kebenaran dari pernyataan berikut:</div>
+              <div class="tf-container" id="tf-box"></div>
+              <button class="sim-btn" style="margin-top:10px; align-self:flex-end;" onclick="submitTF()">Kirim Jawaban Benar/Salah ➡️</button>
+            </div>
+
+            <!-- BABAK D: HASIL REKAPITULASI -->
+            <div class="eval-stage" id="stage-result">
+              <div class="score-board">
+                <div class="trophy-icon">🏆</div>
+                <h2>HASIL EVALUASI PEMBELAJARAN</h2>
+                <div class="score-num" id="final-score-text">0</div>
+                <p id="score-feedback" style="font-weight:700; color:#475569;">Selamat atas usaha terbaikmu!</p>
+                <button class="sim-btn" style="margin-top:12px;" onclick="resetEvaluation()">🔂 Ulangi Evaluasi</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- HALAMAN 7: PROFIL GURU PENGEMBANG -->
+      <!-- =================================================================== -->
+      <section id="page-profil" class="page">
+        <div class="page-title-bar">
+          <div class="page-title">👨‍🏫 PROFIL GURU PENGEMBANG</div>
+        </div>
+        <div class="profile-card">
+          <div class="profile-img-frame">
+            <img src="guru.jfif" alt="Foto Guru" class="profile-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%230284c7\'/></svg>'">
+          </div>
+          <div class="profile-info">
+            <h3>Luluk Ianatul Afifah, S.Pd</h3>
+            <div class="school">Guru Matematika — SMP Negeri 5 Lamongan</div>
+            <div class="quote">
+              "Matematika bukan sekadar tentang menghitung angka, melainkan pola berpikir kritis dan melatih pemecahan masalah dalam kehidupan sehari-hari."
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal Pop-Up Wawasan Fakta -->
+  <div class="modal-overlay" id="wawasan-modal">
+    <div class="modal-box">
+      <h3 style="color:#0284c7; margin-bottom:10px;">💡 Tahukah Kamu?</h3>
+      <p style="font-size:14px; color:#334155; line-height:1.5; margin-bottom:18px;">
+        Konsep bilangan negatif telah digunakan sejak abad ke-3 Masehi di Tiongkok kuno menggunakan batang penghitung berwarna hitam, sementara bilangan positif menggunakan warna merah!
+      </p>
+      <button class="sim-btn" onclick="closeWawasanModal()">Tutup Fakta</button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+     10. JAVASCRIPT LOGIC & AUDIO SYNTHESIZER
+     ========================================================================== -->
+  <script>
+    /* -------------------------------------------------------------------------
+       A. AUDIO SYNTHESIZER (WEB AUDIO API - 100% OFFLINE)
+       ------------------------------------------------------------------------- */
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      alert("Suara Efek: " + (audioEnabled ? "ON 🔊" : "OFF 🔇"));
+    }
+
+    function playClickSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      try {
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch(e){}
+    }
+
+    function playCorrectSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      try {
+        let now = audioCtx.currentTime;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          let osc = audioCtx.createOscillator();
+          let gain = audioCtx.createGain();
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.1, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.2);
+        });
+      } catch(e){}
+    }
+
+    /* -------------------------------------------------------------------------
+       B. NAVIGASI SPA & MODAL
+       ------------------------------------------------------------------------- */
+    function navigateTo(pageId) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      const targetPage = document.getElementById(pageId);
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+    }
+
+    function openWawasanModal() {
+      document.getElementById('wawasan-modal').style.display = 'flex';
+    }
+
+    function closeWawasanModal() {
+      document.getElementById('wawasan-modal').style.display = 'none';
+    }
+
+    /* -------------------------------------------------------------------------
+       C. LOGIKA SIMULASI GARIS BILANGAN SVG
+       ------------------------------------------------------------------------- */
+    let simVal = 0;
+
+    function renderSimTicks() {
+      const ticksGroup = document.getElementById('svg-ticks');
+      ticksGroup.innerHTML = '';
+      for (let i = -5; i <= 5; i++) {
+        let x = 400 + (i * 60);
+        let tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        tick.setAttribute("x1", x);
+        tick.setAttribute("y1", 170);
+        tick.setAttribute("x2", x);
+        tick.setAttribute("y2", 190);
+        tick.setAttribute("stroke", "#0284c7");
+        tick.setAttribute("stroke-width", "3");
+
+        let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x);
+        text.setAttribute("y", 215);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("font-size", "14");
+        text.setAttribute("font-weight", "700");
+        text.setAttribute("fill", "#334155");
+        text.textContent = i;
+
+        ticksGroup.appendChild(tick);
+        ticksGroup.appendChild(text);
+      }
+    }
+
+    function updateSimValue(delta) {
+      playClickSound();
+      simVal = Math.max(-5, Math.min(5, simVal + delta));
+      document.getElementById('sim-val-text').textContent = "Posisi: " + simVal;
+      let targetX = 400 + (simVal * 60);
+      document.getElementById('svg-pointer').setAttribute("transform", `translate(${targetX}, 180)`);
+      document.getElementById('svg-pointer-text').textContent = simVal;
+    }
+
+    function resetSim() {
+      playClickSound();
+      simVal = 0;
+      document.getElementById('sim-val-text').textContent = "Posisi: 0";
+      document.getElementById('svg-pointer').setAttribute("transform", "translate(400, 180)");
+      document.getElementById('svg-pointer-text').textContent = "0";
+    }
+
+    /* -------------------------------------------------------------------------
+       D. LOGIKA EVALUASI MULTI-FORMAT
+       ------------------------------------------------------------------------- */
+    let scoreA = 0, scoreB = 0, scoreC = 0;
+
+    // Data Babak A: Pilihan Ganda (3 Soal @10pt = 30pt)
+    const pgData = [
+      { q: "1. Manakah dari bilangan berikut yang nilainya paling kecil?", opts: ["-10", "-2", "0", "5"], ans: 0 },
+      { q: "2. Suhu udara di puncak gunung 5°C di bawah nol. Penulisan yang benar adalah...", opts: ["+5°C", "5°C", "-5°C", "0°C"], ans: 2 },
+      { q: "3. Pada garis bilangan horizontal, bilangan -8 berada di sebelah ... angka -3.", opts: ["Kiri", "Kanan", "Atas", "Bawah"], ans: 0 }
+    ];
+    let currentPG = 0;
+
+    function renderPG() {
+      if (currentPG < pgData.length) {
+        let d = pgData[currentPG];
+        document.getElementById('pg-question').textContent = d.q;
+        let box = document.getElementById('pg-options-box');
+        box.innerHTML = '';
+        d.opts.forEach((opt, idx) => {
+          let btn = document.createElement('button');
+          btn.className = 'pg-btn';
+          btn.textContent = opt;
+          btn.onclick = () => answerPG(idx);
+          box.appendChild(btn);
+        });
+        document.getElementById('pg-progress').textContent = `Soal ${currentPG + 1} dari ${pgData.length}`;
+      } else {
+        // Pindah ke Babak B
+        document.getElementById('stage-pg').classList.remove('active');
+        document.getElementById('stage-match').classList.add('active');
+        document.getElementById('tab-1').classList.remove('active');
+        document.getElementById('tab-2').classList.add('active');
+      }
+    }
+
+    function answerPG(selectedIdx) {
+      playClickSound();
+      if (selectedIdx === pgData[currentPG].ans) {
+        scoreA += 10;
+      }
+      currentPG++;
+      renderPG();
+    }
+
+    // Data Babak B: Menjodohkan (4 Pasang @10pt = 40pt)
+    const matchPairs = [
+      { id: 1, left: "-15", right: "Suhu 15°C di bawah titik beku" },
+      { id: 2, left: "+25", right: "Ketinggian 25 meter di atas laut" },
+      { id: 3, left: "0", right: "Titik netral garis bilangan" },
+      { id: 4, left: "-5 < 2", right: "Pernyataan perbandingan yang benar" }
+    ];
+    let selectedLeft = null;
+    let userMatches = {};
+
+    function renderMatch() {
+      let lBox = document.getElementById('match-left');
+      let rBox = document.getElementById('match-right');
+      lBox.innerHTML = ''; rBox.innerHTML = '';
+
+      matchPairs.forEach(p => {
+        let lDiv = document.createElement('div');
+        lDiv.className = 'match-item';
+        lDiv.textContent = p.left;
+        lDiv.onclick = () => selectLeftMatch(p.id, lDiv);
+        lBox.appendChild(lDiv);
+
+        let rDiv = document.createElement('div');
+        rDiv.className = 'match-item';
+        rDiv.textContent = p.right;
+        rDiv.onclick = () => selectRightMatch(p.id, rDiv);
+        rBox.appendChild(rDiv);
+      });
+    }
+
+    function selectLeftMatch(id, el) {
+      playClickSound();
+      document.querySelectorAll('#match-left .match-item').forEach(i => i.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedLeft = id;
+    }
+
+    function selectRightMatch(id, el) {
+      if (selectedLeft !== null) {
+        playClickSound();
+        userMatches[selectedLeft] = id;
+        document.querySelectorAll('#match-right .match-item').forEach(i => i.classList.remove('selected'));
+        el.classList.add('selected');
+        drawMatchLines();
+        selectedLeft = null;
+      }
+    }
+
+    function drawMatchLines() {
+      let svg = document.getElementById('match-svg');
+      svg.innerHTML = '';
+      Object.keys(userMatches).forEach(lId => {
+        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", "42%");
+        line.setAttribute("y1", (lId * 60) - 20);
+        line.setAttribute("x2", "58%");
+        line.setAttribute("y2", (userMatches[lId] * 60) - 20);
+        line.setAttribute("stroke", "#0284c7");
+        line.setAttribute("stroke-width", "4");
+        svg.appendChild(line);
+      });
+    }
+
+    function submitMatch() {
+      playClickSound();
+      Object.keys(userMatches).forEach(k => {
+        if (parseInt(k) === userMatches[k]) scoreB += 10;
+      });
+      document.getElementById('stage-match').classList.remove('active');
+      document.getElementById('stage-tf').classList.add('active');
+      document.getElementById('tab-2').classList.remove('active');
+      document.getElementById('tab-3').classList.add('active');
+    }
+
+    // Data Babak C: Benar / Salah (3 Pernyataan @10pt = 30pt)
+    const tfData = [
+      { q: "Bilangan -12 nilainya lebih besar daripada -5.", ans: false },
+      { q: "Angka 0 merupakan bilangan bulat netral.", ans: true },
+      { q: "Semakin ke kiri pada garis bilangan, nilai angka semakin kecil.", ans: true }
+    ];
+    let tfAnswers = {};
+
+    function renderTF() {
+      let box = document.getElementById('tf-box');
+      box.innerHTML = '';
+      tfData.forEach((d, idx) => {
+        let row = document.createElement('div');
+        row.className = 'tf-row';
+        row.innerHTML = `
+          <div class="tf-statement">${idx + 1}. ${d.q}</div>
+          <div class="tf-btns">
+            <button class="tf-btn tf-true" onclick="setTFAnswer(${idx}, true, this)">✓ BENAR</button>
+            <button class="tf-btn tf-false" onclick="setTFAnswer(${idx}, false, this)">✗ SALAH</button>
+          </div>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function setTFAnswer(idx, val, btn) {
+      playClickSound();
+      tfAnswers[idx] = val;
+      let parent = btn.parentElement;
+      parent.querySelectorAll('.tf-btn').forEach(b => b.style.opacity = '0.5');
+      btn.style.opacity = '1';
+    }
+
+    function submitTF() {
+      playClickSound();
+      tfData.forEach((d, idx) => {
+        if (tfAnswers[idx] === d.ans) scoreC += 10;
+      });
+
+      // Tampilkan Hasil Akhir
+      let totalScore = scoreA + scoreB + scoreC;
+      document.getElementById('stage-tf').classList.remove('active');
+      document.getElementById('stage-result').classList.add('active');
+      document.getElementById('tab-3').classList.remove('active');
+      document.getElementById('tab-4').classList.add('active');
+
+      document.getElementById('final-score-text').textContent = totalScore;
+      if (totalScore >= 80) {
+        playCorrectSound();
+        document.getElementById('score-feedback').textContent = "Luar Biasa! Kamu Sangat Memahami Konsep Bilangan Bulat 🎉";
+      } else {
+        document.getElementById('score-feedback').textContent = "Bagus! Pelajari Kembali Materi & Coba Lagi Ya 👍";
+      }
+    }
+
+    function resetEvaluation() {
+      scoreA = 0; scoreB = 0; scoreC = 0;
+      currentPG = 0; userMatches = {}; tfAnswers = {};
+      document.getElementById('stage-result').classList.remove('active');
+      document.getElementById('stage-pg').classList.add('active');
+      document.querySelectorAll('.eval-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-1').classList.add('active');
+      renderPG();
+      renderMatch();
+      renderTF();
+    }
+
+    /* -------------------------------------------------------------------------
+       E. INITIALIZATION ON LOAD
+       ------------------------------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSimTicks();
+      renderPG();
+      renderMatch();
+      renderTF();
+    });
+  </script>
+</body>
+</html>
